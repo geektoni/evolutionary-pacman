@@ -10,8 +10,8 @@ util => should i really explain?
 
 
 command :  
-python3 pacman.py # to paly yourself
-python3 pacman.py -p [NAMEofAGENT] # to let a agent play
+python3 pacman.py # to play yourself
+python3 pacman.py -p [NAMEofAGENT] # to let an agent play
 python3 pacman.py -p GreedyAgent -t # text version game
 python3 pacman.py -p GreedyAgent -q # last result only
 
