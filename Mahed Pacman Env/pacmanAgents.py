@@ -61,3 +61,4 @@ class GreedyAgent(Agent):
 
 def scoreEvaluation(state):
     return state.getScore()
+
