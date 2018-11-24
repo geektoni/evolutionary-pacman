@@ -15,6 +15,7 @@
 from game import *
 from learningAgents import ReinforcementAgent
 from featureExtractors import *
+import numpy as np
 
 import random,util,math
 
@@ -41,8 +42,11 @@ class QLearningAgent(ReinforcementAgent):
     def __init__(self, **args):
         "You can initialize Q-values here..."
         ReinforcementAgent.__init__(self, **args)
-
-        "*** YOUR CODE HERE ***"
+        self.weights = util.Counter()
+        self.epsilon = args["epsilon"]
+        self.gamma = args["gamma"]
+        self.alpha = args["alpha"]
+        self.numTraining = args["numTraining"]
 
     def getQValue(self, state, action):
         """
@@ -50,8 +54,7 @@ class QLearningAgent(ReinforcementAgent):
           Should return 0.0 if we have never seen a state
           or the Q node value otherwise
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        pass
 
 
     def computeValueFromQValues(self, state):
@@ -86,9 +89,16 @@ class QLearningAgent(ReinforcementAgent):
         """
         # Pick Action
         legalActions = self.getLegalActions(state)
+        if (len(legalActions) == 0):
+            return None
         action = None
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        choice = util.flipCoin(self.epsilon)
+        if choice:
+            totalRewards = [self.getQValue(state, a) for a in legalActions]
+            action = legalActions[np.argmax(totalRewards)]
+        else:
+            action = random.choice(legalActions)
 
         return action
 
@@ -164,15 +174,26 @@ class ApproximateQAgent(PacmanQAgent):
           Should return Q(state,action) = w * featureVector
           where * is the dotProduct operator
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        features = self.featExtractor.getFeatures(state, action)
+        return self.weights * features
 
     def update(self, state, action, nextState, reward):
         """
            Should update your weights based on transition
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        legalNextActions = self.getLegalActions(nextState)
+        if (len(legalNextActions) > 0):
+            max_q_value = np.max([self.getQValue(nextState, a) for a in legalNextActions])
+        else:
+            max_q_value = 0
+
+        difference = (reward + self.gamma*max_q_value)-self.getQValue(state, action)
+
+        incremented_features = self.featExtractor.getFeatures(state, action)
+        for k in incremented_features:
+            incremented_features[k] *= (self.alpha*difference)
+
+        self.weights += incremented_features
 
     def final(self, state):
         "Called at the end of each game."
@@ -182,5 +203,21 @@ class ApproximateQAgent(PacmanQAgent):
         # did we finish training?
         if self.episodesSoFar == self.numTraining:
             # you might want to print your weights here for debugging
-            "*** YOUR CODE HERE ***"
-            pass
+            print self.weights
+
+# {'closest-food': -1.4712681647072954, 'bias': -147.31826993759265, '#-of-ghosts-1-step-away': -442.70260110620143, 'eats-food': 130.75246842696492}
+class PlayingQAgent(ApproximateQAgent):
+
+    def __init__(self, **args):
+        ApproximateQAgent.__init__(self, **args)
+        self.weights = util.Counter()
+        self.weights['closest-food'] = -1.4712681647072954
+        self.weights['bias'] = -147.31826993759265
+        self.weights['#-of-ghosts-1-step-away'] = -442.70260110620143
+        self.weights['eats-food'] = 130.75246842696492
+
+    def update(self, state, action, nextState, reward):
+        # We do not update since we just want him to play
+        pass
+
+
