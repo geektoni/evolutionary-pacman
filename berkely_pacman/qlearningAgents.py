@@ -94,7 +94,7 @@ class QLearningAgent(ReinforcementAgent):
         action = None
 
         choice = util.flipCoin(self.epsilon)
-        if choice:
+        if not choice:
             totalRewards = [self.getQValue(state, a) for a in legalActions]
             action = legalActions[np.argmax(totalRewards)]
         else:
