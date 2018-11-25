@@ -17,6 +17,7 @@ from game import Agent
 import random
 import game
 import util
+import numpy as np
 
 class LeftTurnAgent(game.Agent):
     "An agent that turns left at every opportunity"
@@ -47,6 +48,42 @@ class GreedyAgent(Agent):
         bestScore = max(scored)[0]
         bestActions = [pair[1] for pair in scored if pair[0] == bestScore]
         return random.choice(bestActions)
+
+
+class BioAgent(Agent):
+
+    integer_to_action_dict = {0: "Stop",
+                              1: "West",
+                              2: "East",
+                              3: "North",
+                              4: "South"}
+
+    action_to_integer_dict = {"Stop": 0,
+                              "West": 1,
+                              "East": 2,
+                              "North": 3,
+                              "South": 4}
+
+    def __init__(self, evalFn = "scoreEvaluation", nn_model = None):
+        self.nn_model = nn_model
+        self.evaluationFunction = util.lookup(evalFn, globals())
+        assert self.evaluationFunction is not None
+
+    def getAction(self, state):
+        assert self.nn_model is not None
+        legal = state.getLegalPacmanActions()
+        successors = [(state.generateSuccessor(0, action), action) for action in legal]
+        scored = [(action, self.evaluationFunction(state)) for state, action in successors]
+        scored = dict(scored)
+        features = np.zeros(5)
+        for legal_action in legal:
+            features[BioAgent.action_to_integer_dict.get(legal_action)] = scored.get(legal_action)
+        next_action = BioAgent.integer_to_action_dict.get(np.argmax(self.nn_model.predict(features[np.newaxis,...])))
+        assert next_action != -1
+        if next_action not in legal: #TODO
+            return random.choice(legal)
+        return next_action
+
 
 def scoreEvaluation(state):
     return state.getScore()
