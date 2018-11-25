@@ -81,7 +81,7 @@ class BioAgent(Agent):
         next_action = BioAgent.integer_to_action_dict.get(np.argmax(self.nn_model.predict(features[np.newaxis,...])))
         assert next_action != -1
         if next_action not in legal: #TODO
-            return random.choice(legal)
+            return "Stop"
         return next_action
 
 

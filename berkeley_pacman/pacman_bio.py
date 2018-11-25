@@ -62,7 +62,7 @@ if __name__ == '__main__':
     ec.terminator = terminators.evaluation_termination
     final_pop = ga.evolve(generator = generate_candidate,
                           evaluator = evaluate_candidates,
-                          pop_size = 10,
+                          pop_size = 1000,
                           mutation_rate = 0.25,
                           crossover_rate = 0.50,
                           max_evaluations = 3000,
