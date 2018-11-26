@@ -24,14 +24,15 @@ from keras.models import model_from_json
 
 def generate_model():
     model = Sequential()
-    model.add(Dense(8, input_shape = (5,), activation = "relu"))
+    model.add(Dense(64, input_shape = (425,), activation = "relu"))
+    model.add(Dense(8, activation="relu"))
     model.add(Dense(5, activation = "softmax"))
     return model
 
 
 def generate_candidate(random, args):
     nn_model = args.get("nn_model")
-    weights = [np.random.permutation(w.flat).reshape(w.shape) for w in nn_model.get_weights()]
+    weights = [np.random.sample(w.shape) for w in nn_model.get_weights()]
     return weights
 
 
@@ -48,7 +49,6 @@ def evaluate_candidates(candidates, args):
         candidate_fitness = 0
         for game in games:
             candidate_fitness += game.state.getScore()
-        print candidate_fitness
         candidates_fitness.append(candidate_fitness)
     return candidates_fitness
 
@@ -56,16 +56,17 @@ def evaluate_candidates(candidates, args):
 if __name__ == '__main__':
     cmd_line_args = pacman.readCommand(sys.argv[1:]) # Get game components based on input
     nn_model = generate_model()
-    rand = Random()
-    rand.seed(int(time()))
-    ga = ec.GA(rand)
-    ec.terminator = terminators.evaluation_termination
-    final_pop = ga.evolve(generator = generate_candidate,
-                          evaluator = evaluate_candidates,
-                          pop_size = 1000,
-                          mutation_rate = 0.25,
-                          crossover_rate = 0.50,
+    prng = Random()
+    prng.seed(time())
+    ea = ec.DEA(prng)
+    ea.terminator = ec.terminators.evaluation_termination
+    final_pop = ea.evolve(generator=generate_candidate,
+                          evaluator=evaluate_candidates,
+                          pop_size = 100,
+                          maximize = True,
                           max_evaluations = 3000,
+                          mutation_rate = 0.4,
+                          crossover_rate = 0.6,
                           nn_model = nn_model,
                           cmd_line_args = cmd_line_args)
     best = max(final_pop)
