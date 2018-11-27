@@ -69,19 +69,31 @@ class BioAgent(Agent):
         self.evaluationFunction = util.lookup(evalFn, globals())
         assert self.evaluationFunction is not None
 
+
     def getAction(self, state):
         assert self.nn_model is not None
         legal = state.getLegalPacmanActions()
         successors = [(state.generateSuccessor(0, action), action) for action in legal]
         scored = [(action, self.evaluationFunction(state)) for state, action in successors]
         scored = dict(scored)
+        food = state.getFood()
+        food = np.vstack(food).astype(int).flatten()
+        walls = state.getWalls()
+        walls = np.vstack(walls).astype(int).flatten()
+        ghosts_positions = state.getGhostPositions()
+        ghosts = np.zeros((20, 7))
+        for ghost_position in ghosts_positions:
+            ghosts[int(ghost_position[0])][int(ghost_position[1])] = 1
+        ghosts = ghosts.flatten()
         features = np.zeros(5)
         for legal_action in legal:
             features[BioAgent.action_to_integer_dict.get(legal_action)] = scored.get(legal_action)
+        features = np.concatenate((features, food, walls, ghosts))
         next_action = BioAgent.integer_to_action_dict.get(np.argmax(self.nn_model.predict(features[np.newaxis,...])))
         assert next_action != -1
         if next_action not in legal: #TODO
             return "Stop"
+            #return random.choice(legal)
         return next_action
 
 
