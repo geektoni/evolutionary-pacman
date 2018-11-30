@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -14,6 +14,7 @@
 
 from pacman import Directions
 from game import Agent
+from featureExtractors import *
 import random
 import game
 import util
@@ -64,37 +65,35 @@ class BioAgent(Agent):
                               "North": 3,
                               "South": 4}
 
-    def __init__(self, evalFn = "scoreEvaluation", nn_model = None):
+    def __init__(self, evalFn = "scoreEvaluation", nn_model = None,  extractor='SimpleExtractor'):
         self.nn_model = nn_model
         self.evaluationFunction = util.lookup(evalFn, globals())
+        self.featExtractor = util.lookup(extractor, globals())()
         assert self.evaluationFunction is not None
 
 
     def getAction(self, state):
         assert self.nn_model is not None
         legal = state.getLegalPacmanActions()
-        successors = [(state.generateSuccessor(0, action), action) for action in legal]
-        scored = [(action, self.evaluationFunction(state)) for state, action in successors]
-        scored = dict(scored)
-        food = state.getFood()
-        food = np.vstack(food).astype(int).flatten()
-        walls = state.getWalls()
-        walls = np.vstack(walls).astype(int).flatten()
-        ghosts_positions = state.getGhostPositions()
-        ghosts = np.zeros((20, 7))
-        for ghost_position in ghosts_positions:
-            ghosts[int(ghost_position[0])][int(ghost_position[1])] = 1
-        ghosts = ghosts.flatten()
-        features = np.zeros(5)
-        for legal_action in legal:
-            features[BioAgent.action_to_integer_dict.get(legal_action)] = scored.get(legal_action)
-        features = np.concatenate((features, food, walls, ghosts))
+        #successors = [(state.generateSuccessor(0, action), action) for action in legal]
+        #scored = [(action, self.evaluationFunction(state)) for state, action in successors]
+        #scored = dict(scored)
+        #features = np.zeros(5)
+        #for legal_action in legal:
+        #    features[BioAgent.action_to_integer_dict.get(legal_action)] = scored.get(legal_action)
+        #next_action = BioAgent.integer_to_action_dict.get(np.argmax(self.nn_model.predict(features[np.newaxis,...])))
+        dict_features = self.featExtractor.getFeatures(state, None)
+        features = []
+        features.append(dict_features['closest-food'])
+        features.append(dict_features['bias'])
+        features.append(dict_features['#-of-ghosts-1-step-away'])
+        features.append(dict_features['eats-food'])
+        features = np.array(features)
         next_action = BioAgent.integer_to_action_dict.get(np.argmax(self.nn_model.predict(features[np.newaxis,...])))
         assert next_action != -1
-        if next_action not in legal: #TODO
-            return "Stop"
-            #return random.choice(legal)
-        return next_action
+        if next_action in legal:
+            return next_action
+        return "Stop"
 
 
 def scoreEvaluation(state):
