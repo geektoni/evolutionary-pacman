@@ -65,6 +65,8 @@ class BioAgent(Agent):
                               "North": 3,
                               "South": 4}
 
+    actions = ["Stop", "West", "East", "North", "South"]
+
     def __init__(self, evalFn = "scoreEvaluation", nn_model = None,  extractor='SimpleExtractor'):
         self.nn_model = nn_model
         self.evaluationFunction = util.lookup(evalFn, globals())
@@ -74,21 +76,25 @@ class BioAgent(Agent):
 
     def getAction(self, state):
         assert self.nn_model is not None
+
+        # Get the legal possible actions and generate the features
         legal = state.getLegalPacmanActions()
-        #successors = [(state.generateSuccessor(0, action), action) for action in legal]
-        #scored = [(action, self.evaluationFunction(state)) for state, action in successors]
-        #scored = dict(scored)
-        #features = np.zeros(5)
-        #for legal_action in legal:
-        #    features[BioAgent.action_to_integer_dict.get(legal_action)] = scored.get(legal_action)
-        #next_action = BioAgent.integer_to_action_dict.get(np.argmax(self.nn_model.predict(features[np.newaxis,...])))
-        dict_features = self.featExtractor.getFeatures(state, None)
+        dict_features = []
+        for a in BioAgent.actions:
+            if a in legal:
+                dict_features.append(self.featExtractor.getFeatures(state, a))
+            else:
+                dict_features.append(util.Counter())
+
+        # Create an array with them
         features = []
-        features.append(dict_features['closest-food'])
-        features.append(dict_features['bias'])
-        features.append(dict_features['#-of-ghosts-1-step-away'])
-        features.append(dict_features['eats-food'])
+        for d in dict_features:
+            features.append(d['closest-food'])
+            features.append(d['bias'])
+            features.append(d['#-of-ghosts-1-step-away'])
+            features.append(d['eats-food'])
         features = np.array(features)
+
         next_action = BioAgent.integer_to_action_dict.get(np.argmax(self.nn_model.predict(features[np.newaxis,...])))
         assert next_action != -1
         if next_action in legal:
