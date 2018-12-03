@@ -104,3 +104,60 @@ class BioAgent(Agent):
 
 def scoreEvaluation(state):
     return state.getScore()
+
+class NEATAgent(Agent):
+
+    integer_to_action_dict = {0: "Stop",
+                              1: "West",
+                              2: "East",
+                              3: "North",
+                              4: "South"}
+
+    action_to_integer_dict = {"Stop": 0,
+                              "West": 1,
+                              "East": 2,
+                              "North": 3,
+                              "South": 4}
+
+    actions = ["Stop", "West", "East", "North", "South"]
+
+    def __init__(self, evalFn = "scoreEvaluation", nn_model = None,  extractor='SimpleExtractor'):
+        self.nn_model = nn_model
+        self.evaluationFunction = util.lookup(evalFn, globals())
+        self.featExtractor = util.lookup(extractor, globals())()
+        assert self.evaluationFunction is not None
+
+
+    def getAction(self, state):
+        assert self.nn_model is not None
+
+        # Get the legal possible actions and generate the features
+        legal = state.getLegalPacmanActions()
+        dict_features = []
+        for a in BioAgent.actions:
+            if a in legal:
+                dict_features.append(self.featExtractor.getFeatures(state, a))
+            else:
+                dict_features.append(util.Counter())
+
+        # Create an array with them
+        features = []
+        for d in dict_features:
+            features.append(d['closest-food'])
+            features.append(d['bias'])
+            features.append(d['#-of-ghosts-1-step-away'])
+            features.append(d['eats-food'])
+        features = np.array(features)
+
+        # Run the network
+        next_action = NEATAgent.integer_to_action_dict.get(np.argmax(self.nn_model.activate(features)))
+
+        assert next_action != -1
+        if next_action in legal:
+            return next_action
+        return "Stop"
+
+
+def scoreEvaluation(state):
+    return state.getScore()
+
