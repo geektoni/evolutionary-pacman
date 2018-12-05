@@ -1,12 +1,12 @@
 [NEAT]
 fitness_criterion     = max
-fitness_threshold     = 1320
-pop_size              = 350
-reset_on_extinction   = 0
+fitness_threshold     = 1400
+pop_size              = 100
+reset_on_extinction   = True
 
 [DefaultGenome]
 num_inputs              = 20
-num_hidden              = 10
+num_hidden              = 30
 num_outputs             = 5
 initial_connection      = partial_direct 0.5
 feed_forward            = True
@@ -27,8 +27,8 @@ bias_init_stdev         = 1.0
 bias_replace_rate       = 0.1
 bias_mutate_rate        = 0.7
 bias_mutate_power       = 0.5
-bias_max_value          = 30.0
-bias_min_value          = -30.0
+bias_max_value          = 100.0
+bias_min_value          = -100.0
 response_init_mean      = 1.0
 response_init_stdev     = 0.0
 response_replace_rate   = 0.0
@@ -51,6 +51,7 @@ enabled_mutate_rate     = 0.01
 compatibility_threshold = 3.0
 
 [DefaultStagnation]
+species_elitism = 1
 species_fitness_func = max
 max_stagnation  = 20
 

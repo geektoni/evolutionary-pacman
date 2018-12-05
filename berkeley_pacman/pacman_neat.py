@@ -21,8 +21,10 @@ def eval_genomes(genome, config):
     cmd_line_args['display'] = textDisplay.NullGraphics()
     # cmd_line_args['display'] = graphicsDisplay.PacmanGraphics()
     games = pacman.runGames(**cmd_line_args)
+    result=0
     for game in games:
-        genome.fitness += game.state.getScore()
+        result += -game.state.getScore()
+    return result
 
 
 if __name__ == '__main__':
@@ -47,7 +49,7 @@ if __name__ == '__main__':
 
     # Run for up to 300 generations (parallel)
     pe = neat.ParallelEvaluator(4, eval_genomes)
-    winner = p.run(pe.evaluate, 300)
+    winner = p.run(pe.evaluate, 200)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
