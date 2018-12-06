@@ -111,6 +111,7 @@ class GameState:
         # Time passes
         if agentIndex == 0:
             state.data.scoreChange += -TIME_PENALTY # Penalty for waiting around
+            state.data.timeElapsed += 1
         else:
             GhostRules.decrementTimer( state.data.agentStates[agentIndex] )
 
@@ -199,6 +200,13 @@ class GameState:
         if walls[x][y] == True: ...
         """
         return self.data.layout.walls
+
+    def getTimeElapsed(self):
+        """
+        Return the time elapsed since the game start
+        :return: time represented as an integer (it starts from zero)
+        """
+        return self.data.timeElapsed
 
     def hasFood(self, x, y):
         return self.data.food[x][y]
