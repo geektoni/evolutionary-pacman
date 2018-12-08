@@ -16,6 +16,7 @@
 
 from game import Directions, Actions
 import util
+import numpy as np
 
 class FeatureExtractor:
     def getFeatures(self, state, action):
@@ -104,4 +105,78 @@ class SimpleExtractor(FeatureExtractor):
             # will diverge wildly
             features["closest-food"] = float(dist) / (walls.width * walls.height)
         features.divideAll(10.0)
+        return features
+
+
+def objectsDistances(position, objects_matrix, walls_matrix):
+    fringe = [(position[0], position[1], 0)]
+    explored = set()
+    ghost_distances = []
+    while fringe:
+        position_x, position_y, distance = fringe.pop(0)
+        if (position_x, position_y) in explored:
+            continue
+        explored.add((position_x, position_y))
+        if objects_matrix[position_x][position_y]:
+            ghost_distances.append(distance)
+        neighbors = Actions.getLegalNeighbors((position_x, position_y), walls_matrix)
+        for neighbors_x, neighbors_y in neighbors:
+            fringe.append((neighbors_x, neighbors_y, distance + 1))
+    return ghost_distances
+
+
+class BioSimpleExtractor(FeatureExtractor):
+
+    def getFeatures(self, state, action):
+
+        # foods
+        foods_matrix = state.getFood()
+
+        # walls
+        walls_matrix = state.getWalls()
+
+        assert (foods_matrix.width == walls_matrix.width) and (foods_matrix.height == walls_matrix.height)
+
+        # ghosts
+        ghosts_matrix = np.full((walls_matrix.width, walls_matrix.height), False, dtype = bool)
+
+        for ghost_position in state.getGhostPositions():
+            ghosts_matrix[int(ghost_position[0])][int(ghost_position[1])] = True
+
+        # capsules
+        capsules_matrix = np.full((walls_matrix.width, walls_matrix.height), False, dtype = bool)
+
+        for capsule_position in state.getCapsules():
+            capsules_matrix[int(capsule_position[0])][int(capsule_position[1])] = True
+
+        position_x, position_y = state.getPacmanPosition()
+        delta_x, delta_y = Actions.directionToVector(action)
+        next_position_x, next_position_y = int(position_x + delta_x), int(position_y + delta_y)
+
+        ghosts_distances = objectsDistances((next_position_x, next_position_y),
+                              ghosts_matrix,
+                              walls_matrix)
+
+        capsules_distances = objectsDistances((next_position_x, next_position_y),
+                                              capsules_matrix,
+                                              walls_matrix)
+
+        closest_food_distance = closestFood((next_position_x, next_position_y),
+                                            foods_matrix,
+                                            walls_matrix)
+
+        features = util.Counter()
+
+        features["can_eat_ghosts"] = 0
+        features["capsules_distances"] = capsules_distances
+
+        if len(capsules_distances) != 2:
+            features["can_eat_ghosts"] = 1
+            features["capsules_distances"] = [capsules_distances[0], 1000]
+
+        features["ghosts_distances"] = ghosts_distances
+        features["closest_food_distance"] = closest_food_distance
+        features["num_foods_left"] = state.getNumFood()
+        features["current_score"] = state.getScore()
+
         return features

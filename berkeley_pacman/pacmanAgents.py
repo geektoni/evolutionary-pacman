@@ -67,38 +67,43 @@ class BioAgent(Agent):
 
     actions = ["Stop", "West", "East", "North", "South"]
 
-    def __init__(self, evalFn = "scoreEvaluation", nn_model = None,  extractor='SimpleExtractor'):
+    def __init__(self, evalFn = "scoreEvaluation", nn_model = None,  extractor = "BioSimpleExtractor"):
         self.nn_model = nn_model
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.featExtractor = util.lookup(extractor, globals())()
         assert self.evaluationFunction is not None
 
-
     def getAction(self, state):
         assert self.nn_model is not None
 
         # Get the legal possible actions and generate the features
-        legal = state.getLegalPacmanActions()
+        legal_pacman_actions = state.getLegalPacmanActions()
         dict_features = []
-        for a in BioAgent.actions:
-            if a in legal:
-                dict_features.append(self.featExtractor.getFeatures(state, a))
+        for action in BioAgent.actions:
+            """
+            if action in legal_pacman_actions:
+                dict_features.append(self.featExtractor.getFeatures(state, action))
             else:
                 dict_features.append(util.Counter())
+            """
+            dict_features.append(self.featExtractor.getFeatures(state, action))
 
         # Create an array with them
         features = []
         for d in dict_features:
-            features.append(d['closest-food'])
-            features.append(d['bias'])
-            features.append(d['#-of-ghosts-1-step-away'])
-            features.append(d['eats-food'])
+            features.append(d["can_eat_ghosts"])
+            features.extend(d["ghosts_distances"])
+            features.extend(d["capsules_distances"])
+            features.append(d["closest_food_distance"])
+            features.append(d["num_foods_left"])
+            features.append(d["current_score"])
         features = np.array(features)
 
-        next_action = BioAgent.integer_to_action_dict.get(np.argmax(self.nn_model.predict(features[np.newaxis,...])))
+        next_action = BioAgent.integer_to_action_dict.get(int(np.argmax(self.nn_model.predict(features[np.newaxis,...]))))
         assert next_action != -1
-        if next_action in legal:
+        if next_action in legal_pacman_actions:
             return next_action
+
         return "Stop"
 
 

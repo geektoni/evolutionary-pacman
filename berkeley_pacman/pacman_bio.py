@@ -26,7 +26,7 @@ from keras.models import model_from_json
 
 def generate_model():
     model = Sequential()
-    model.add(Dense(10, input_shape = (20,), activation = "relu"))
+    model.add(Dense(10, input_shape = (35,), activation = "relu"))
     model.add(Dense(5, activation = "softmax"))
     return model
 
@@ -66,14 +66,14 @@ if __name__ == '__main__':
     ea.terminator = ec.terminators.evaluation_termination
     final_pop = ea.evolve(generator=generate_candidate,
                           evaluator=evaluate_candidates,
-                          pop_size = 1000,
+                          pop_size = 5000,
                           maximize = True,
                           max_evaluations = 1000,
                           mutation_rate = 0.3,
                           crossover_rate = 1,
                           nn_model = nn_model,
                           num_elites = 1,
-                          mp_num_cpus=4,
+                          mp_num_cpus = 4,
                           cmd_line_args = cmd_line_args)
     best = max(final_pop)
     nn_model.set_weights(best.candidate)
