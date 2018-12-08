@@ -16,6 +16,8 @@
 
 from game import Directions, Actions
 import util
+from pprint import pprint
+
 
 class FeatureExtractor:
     def getFeatures(self, state, action):
@@ -105,3 +107,57 @@ class SimpleExtractor(FeatureExtractor):
             features["closest-food"] = float(dist) / (walls.width * walls.height)
         features.divideAll(10.0)
         return features
+
+    def getFeaturesGeneral(self, state):
+        # extract the grid of food and wall locations and get the ghost locations
+        food = state.getFood()
+        walls = state.getWalls()
+        ghosts = state.getGhostPositions()
+        x, y = state.getPacmanPosition()
+
+        # Empty matrix
+        features = []
+
+        # Add food position
+        for e in food:
+            tmp_feats = []
+            for v in e:
+                if v:
+                    tmp_feats.append(1)
+                else:
+                    tmp_feats.append(0)
+            features.append(tmp_feats)
+
+        # Set up the walls
+        for i in range(0, len(features)):
+            for j in range(0, len(features[i])):
+                if walls[i][j]:
+                    features[i][j] = -1
+
+        # Set up the ghost
+        for j in ghosts:
+            features[int(j[0])][int(j[1])] = -10
+
+        # Set up pacman position
+        features[x][y] = 20
+
+        # Get size of the space
+        rows = len(features)
+        cols = len(features[0])
+
+        # Crop the position to a 5x5 matrix
+        crop_features = []
+        sx = int(x - 2)
+        for i in range(0,5):
+            sy = int(y - 2)
+            line = []
+            for j in range(0,5):
+                if (sx < 0 or sx >= rows) or (sy < 0 or sy >= cols):
+                    line.append(-1)
+                else:
+                   line.append(features[sx][sy])
+                sy += 1
+            crop_features.append(line)
+            sx += 1
+
+        return crop_features
