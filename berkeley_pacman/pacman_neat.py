@@ -12,7 +12,6 @@ import neat
 # Command line arguments
 cmd_line_args = []
 
-
 def eval_genomes(genome, config):
     genome.fitness = 0
     nn_model = neat.nn.FeedForwardNetwork.create(genome, config)
@@ -23,9 +22,21 @@ def eval_genomes(genome, config):
     games = pacman.runGames(**cmd_line_args)
     result=0
     for game in games:
-        result += -game.state.getScore()
+        result += game.state.getScore() -game.state.getTimeElapsed()
     return result
 
+
+def eval_genomes_single(genomes, config):
+    for id, genome in genomes:
+        genome.fitness = 0
+        nn_model = neat.nn.FeedForwardNetwork.create(genome, config)
+        pacmanType = pacman.loadAgent("NEATAgent", True)
+        cmd_line_args['pacman'] = pacmanType(nn_model=nn_model)
+        cmd_line_args['display'] = textDisplay.NullGraphics()
+        #cmd_line_args['display'] = graphicsDisplay.PacmanGraphics()
+        games = pacman.runGames(**cmd_line_args)
+        for game in games:
+            genome.fitness += game.state.getScore()
 
 if __name__ == '__main__':
     cmd_line_args = pacman.readCommand(sys.argv[1:]) # Get game components based on input
@@ -49,7 +60,8 @@ if __name__ == '__main__':
 
     # Run for up to 300 generations (parallel)
     pe = neat.ParallelEvaluator(4, eval_genomes)
-    winner = p.run(pe.evaluate, 200)
+    winner = p.run(pe.evaluate, 300)
+    #winner = p.run(eval_genomes_single, 100)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
