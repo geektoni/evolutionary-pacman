@@ -1,5 +1,6 @@
 # util
 import sys
+import pickle
 
 # Berkeley Pac-Man
 import pacman
@@ -22,8 +23,8 @@ def eval_genomes(genome, config):
     games = pacman.runGames(**cmd_line_args)
     result=0
     for game in games:
-        result += game.state.getScore() -game.state.getTimeElapsed()
-    return result
+        result += game.state.getScore()
+    return float(result)/float(len(games))
 
 
 def eval_genomes_single(genomes, config):
@@ -60,11 +61,15 @@ if __name__ == '__main__':
 
     # Run for up to 300 generations (parallel)
     pe = neat.ParallelEvaluator(4, eval_genomes)
-    winner = p.run(pe.evaluate, 300)
-    #winner = p.run(eval_genomes_single, 100)
+    winner = p.run(pe.evaluate, 1000)
+    #winner = p.run(eval_genomes_single, 1)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
+
+    # Save the winner to disci
+    with open('winner-feedforward.out', 'wb') as f:
+        pickle.dump(winner, f)
 
     # Show output of the most fit genome against training data.
     print('\nOutput:')
@@ -73,7 +78,8 @@ if __name__ == '__main__':
     # Load the final agent and run a few games with it
     pacmanType = pacman.loadAgent("NEATAgent", True)
     cmd_line_args['pacman'] = pacmanType(nn_model = winner_net)
-    cmd_line_args['display'] = graphicsDisplay.PacmanGraphics()
+    cmd_line_args['display'] = textDisplay.NullGraphics()
+    #cmd_line_args['display'] = graphicsDisplay.PacmanGraphics()
     cmd_line_args['numGames'] = 10
     games = pacman.runGames(**cmd_line_args)
     pass
