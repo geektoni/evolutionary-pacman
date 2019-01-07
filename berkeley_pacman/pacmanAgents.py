@@ -79,22 +79,25 @@ class BioAgent(Agent):
 
         # Get the legal possible actions and generate the features
         legal = state.getLegalPacmanActions()
-        dict_features = []
-        for a in BioAgent.actions:
-            if a in legal:
-                dict_features.append(self.featExtractor.getFeatures(state, a))
-            else:
-                dict_features.append(util.Counter())
+        #dict_features = []
+        #for a in BioAgent.actions:
+        #    if a in legal:
+        #        dict_features.append(self.featExtractor.getFeatures(state, a))
+        #    else:
+        #        dict_features.append(util.Counter())
 
         # Create an array with them
-        features = []
-        for d in dict_features:
-            features.append(d['closest-food'])
-            features.append(d['bias'])
-            features.append(d['#-of-ghosts-1-step-away'])
-            features.append(d['eats-food'])
-        features = np.array(features)
+        #features = []
+        #for d in dict_features:
+        #    features.append(d['closest-food'])
+        #    features.append(d['bias'])
+        #    features.append(d['#-of-ghosts-1-step-away'])
+        #    features.append(d['eats-food'])
+        #features = np.array(features)
 
+        features = self.featExtractor.getFeaturesGeneral(state)
+        features = np.array(features).flatten()
+        print(features)
         next_action = BioAgent.integer_to_action_dict.get(np.argmax(self.nn_model.predict(features[np.newaxis,...])))
         assert next_action != -1
         if next_action in legal:
