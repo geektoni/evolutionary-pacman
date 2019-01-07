@@ -53,6 +53,10 @@ if __name__ == '__main__':
     # Create the population, which is the top-level object for a NEAT run.
     p = neat.Population(config)
 
+    # Load from checkpoint
+    #if cmd_line_args["checkpoint-neat"] != -1:
+    #    p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-'+str(cmd_line_args["checkpoint-neat"]))
+
     # Add a stdout reporter to show progress in the terminal.
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
@@ -62,12 +66,12 @@ if __name__ == '__main__':
     # Run for up to 300 generations (parallel)
     pe = neat.ParallelEvaluator(4, eval_genomes)
     winner = p.run(pe.evaluate, 1000)
-    #winner = p.run(eval_genomes_single, 1)
+    #winner = p.run(eval_genomes_single, 100)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
 
-    # Save the winner to disci
+    # Save the winner to disk
     with open('winner-feedforward.out', 'wb') as f:
         pickle.dump(winner, f)
 
