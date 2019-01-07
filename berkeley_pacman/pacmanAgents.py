@@ -97,7 +97,6 @@ class BioAgent(Agent):
 
         features = self.featExtractor.getFeaturesGeneral(state)
         features = np.array(features).flatten()
-        print(features)
         next_action = BioAgent.integer_to_action_dict.get(np.argmax(self.nn_model.predict(features[np.newaxis,...])))
         assert next_action != -1
         if next_action in legal:

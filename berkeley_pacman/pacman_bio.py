@@ -53,7 +53,6 @@ def evaluate_candidates(candidates, args):
         for game in games:
             candidate_fitness += game.state.getScore()
         candidates_fitness.append(candidate_fitness)
-    print(candidates_fitness)
     return candidates_fitness
 
 
