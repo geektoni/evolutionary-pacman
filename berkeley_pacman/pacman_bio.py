@@ -69,7 +69,7 @@ if __name__ == '__main__':
                           pop_size = 5000,
                           maximize = True,
                           max_evaluations = 1000,
-                          mutation_rate = 0.3,
+                          mutation_rate = 0.5,
                           crossover_rate = 1,
                           nn_model = nn_model,
                           num_elites = 1,
