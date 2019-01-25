@@ -18,7 +18,9 @@ from featureExtractors import *
 import random
 import game
 import util
+import torch
 import numpy as np
+
 
 class LeftTurnAgent(game.Agent):
     "An agent that turns left at every opportunity"
@@ -33,6 +35,7 @@ class LeftTurnAgent(game.Agent):
         if Directions.RIGHT[current] in legal: return Directions.RIGHT[current]
         if Directions.LEFT[left] in legal: return Directions.LEFT[left]
         return Directions.STOP
+
 
 class GreedyAgent(Agent):
     def __init__(self, evalFn="scoreEvaluation"):
@@ -97,9 +100,13 @@ class BioAgent(Agent):
             features.append(d["closest_food_distance"])
             features.append(d["num_foods_left"])
             features.append(d["current_score"])
-        features = np.array(features)
+        features = np.array(features, dtype = float)
+        output_tensor = self.nn_model(torch.tensor(features, dtype=torch.double))
 
-        next_action = BioAgent.integer_to_action_dict.get(int(np.argmax(self.nn_model.predict(features[np.newaxis,...]))))
+        #print features
+        #print output_tensor
+        next_action = BioAgent.integer_to_action_dict.get(int(torch.argmax(output_tensor).item()))
+        #print next_action
         assert next_action != -1
         if next_action in legal_pacman_actions:
             return next_action

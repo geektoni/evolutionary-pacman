@@ -293,7 +293,7 @@ class ClassicGameRules:
         game.gameOver = True
 
     def lose( self, state, game ):
-        if not self.quiet: print "Pacman died! Score: %d" % state.data.score
+        #if not self.quiet: print "Pacman died! Score: %d" % state.data.score
         game.gameOver = True
 
     def getProgress(self, game):
@@ -523,6 +523,14 @@ def readCommand( argv ):
                       help='Turns on exception handling and timeouts during games', default=False)
     parser.add_option('--timeout', dest='timeout', type='int',
                       help=default('Maximum length of time an agent can spend computing in a single game'), default=30)
+    parser.add_option("--EA", type='str', default="simple", help="Type of Evolutionary algorithm which will be used.")
+    parser.add_option("--CR", type='float', default=0.25, help="Crossover probability")
+    parser.add_option("--F", type='float', default=1, help="Differential weight")
+    parser.add_option("--MU", type='int', default=300, help="Population size")
+    parser.add_option("--NGEN", type='int', default=200, help="Number of generations")
+    parser.add_option("--DEVICE", type='str', default="cpu", help="Device on which to rung the PyTorch model")
+    parser.add_option("--MODE_NO_SCREEN", default=False, action="store_true", help="Disable screen")
+    parser.add_option("--NCPU", type='int', default=1, help="Number of CPUs")
 
     options, otherjunk = parser.parse_args(argv)
     if len(otherjunk) != 0:
@@ -570,6 +578,14 @@ def readCommand( argv ):
     args['record'] = options.record
     args['catchExceptions'] = options.catchExceptions
     args['timeout'] = options.timeout
+    args['EA'] = options.EA
+    args['CR'] = options.CR
+    args['F'] = options.F
+    args['MU'] = options.MU
+    args['NGEN'] = options.NGEN
+    args['DEVICE'] = options.DEVICE
+    args['MODE_NO_SCREEN'] = options.MODE_NO_SCREEN
+    args['NCPU'] = options.NCPU
 
     # Special case: recorded games don't use the runGames method or args structure
     if options.gameToReplay != None:
@@ -625,7 +641,7 @@ def replayGame( layout, actions, display ):
 
     display.finish()
 
-def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0, catchExceptions=False, timeout=30 ):
+def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0, catchExceptions=False, timeout=30, **args):
     import __main__
     __main__.__dict__['_display'] = display
 
@@ -658,10 +674,10 @@ def runGames( layout, pacman, ghosts, display, numGames, record, numTraining = 0
         scores = [game.state.getScore() for game in games]
         wins = [game.state.isWin() for game in games]
         winRate = wins.count(True)/ float(len(wins))
-        print 'Average Score:', sum(scores) / float(len(scores))
-        print 'Scores:       ', ', '.join([str(score) for score in scores])
-        print 'Win Rate:      %d/%d (%.2f)' % (wins.count(True), len(wins), winRate)
-        print 'Record:       ', ', '.join([ ['Loss', 'Win'][int(w)] for w in wins])
+        #print 'Average Score:', sum(scores) / float(len(scores))
+        #print 'Scores:       ', ', '.join([str(score) for score in scores])
+        #print 'Win Rate:      %d/%d (%.2f)' % (wins.count(True), len(wins), winRate)
+        #print 'Record:       ', ', '.join([ ['Loss', 'Win'][int(w)] for w in wins])
 
     return games
 
